@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<div class="container">
+	<div class="button_container">		
+		<div class="container">
+		  <div class="row">
+		    <div class="col-md-6">
+		    <div class="input-group mb-3">
+				<div class="input-group-prepend">
+					<span class="input-group-text">CODE</span>
+				</div>
+				<input type="text" class="form-control" placeholder="R2D2" aria-label="Code" aria-describedby="code" name="roomCode" id="roomCode">
+			</div>
+			<div class="w-100"></div>
+		    </div>
+		    <div class="col-md-6">
+		      <button type="button" class="btn btn-primary" id="roomBtn">Deelnemen aan room</button>
+		    </div>
+		  </div>
+		</div>
+	</div>
+</div>
+<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+<script>
+$(() => {
+    $("#roomBtn").click(function(){
+		var room = $("#roomCode").val();
+		console.log(room);
+
+		$.ajax("api/room?code="+room, {
+		   type: "GET",
+		   statusCode: {
+		      200: function (response) {
+		         window.location.replace("/room/"+room);
+		      },
+		      404: function (response) {
+		         alert('Geen room gevonden met deze code');
+		      }
+		   }
+		});
+	});
+});
+ 
+function createLobby(){
+   $.post("http://localhost:3000/lobby");
+ }
+
+</script>
+</body>
+</html>
