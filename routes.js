@@ -20,15 +20,25 @@ module.exports = function(app, mongoose){
 	})
 
 	app.post('/api/room', (req, res) => {
-	  var id = generate(4, function(id){
-	  	  var lobby = new Lobby({id: id});
-		  lobby.save((err) =>{
-		    if(err)
-		      sendStatus(500);
-		    res.sendStatus(200);
-		  })
+	  var id = generateRoomID();
+	  Room.create({code: id}, function(err, result) {
+		if (result === null || err) {
+		  res.sendStatus(404);
+		} else {
+		  res.json(result);
+		}
 	  });
 	});
+
+	function generateRoomID() {
+		var result           = '';
+		var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		var charactersLength = characters.length;
+		for ( var i = 0; i < 4; i++ ) {
+		   result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
+	 }
 
 	// #####################  Webpages ##############################
 	var path = require('path');

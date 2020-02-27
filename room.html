@@ -9,13 +9,7 @@
 	<button class="btn" id="backBtn"><-- Terug</button>
 	<div class="row inner-content">
 		<div class="col-md-12">
-			<h1 id="roomCode"></h1>
-			<b>Spelregels:</b> Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-			tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-			quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
-			consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse
-			cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-			proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+			<h2 id="roomCode">Room:</h2> 
 		</div>
 		<div class="col-md-12">
 			<img style="width: 100%;" src="https://www.qr-code-generator.com/wp-content/themes/qr/new_structure/markets/core_market_full/generator/dist/generator/assets/images/websiteQRCode_noFrame.png">
@@ -31,13 +25,12 @@ crossorigin="anonymous"></script>
 <script>
 $(() => {
 	const urlParams = new URLSearchParams(window.location.search);
-	const room = urlParams.get('code');
 
-	$.ajax("api/room?code="+room, {
-	   type: "GET",
+	$.ajax("api/room", {
+	   type: "POST",
 	   statusCode: {
 	      200: function (response) {
-	         $("#roomCode").text("Room: "+room);
+	         $("#roomCode").text("Room: "+response.code);
 	      },
 	      404: function (response) {
 	         alert('Geen room gevonden met deze code');
