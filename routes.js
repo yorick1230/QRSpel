@@ -1,5 +1,6 @@
-module.exports = function(app, mongoose, config){
+module.exports = function(app, mongoose){
 
+	// #########################   API    ###############################
 	var RoomSchema = mongoose.Schema({
 	    code: String
 	});
@@ -28,4 +29,15 @@ module.exports = function(app, mongoose, config){
 		  })
 	  });
 	});
+
+	// #####################  Webpages ##############################
+	var path = require('path');
+	
+	app.get('/', (req, res) => {
+	    res.sendfile(path.join(__dirname + '/index.html'));
+	})
+
+	app.get('/room', (req, res) => {
+	    res.sendfile(path.join(__dirname + '/room.html'));
+	})
 }

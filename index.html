@@ -41,7 +41,7 @@ $(() => {
 		   type: "GET",
 		   statusCode: {
 		      200: function (response) {
-		         window.location.replace("/room/"+room);
+		         window.location.href = "/room?code="+room;
 		      },
 		      404: function (response) {
 		         alert('Geen room gevonden met deze code');
@@ -50,10 +50,6 @@ $(() => {
 		});
 	});
 });
- 
-function createLobby(){
-   $.post("http://localhost:3000/lobby");
- }
 
 </script>
 </body>

@@ -8,6 +8,7 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(express.static(__dirname));
+app.set('view engine', 'pug');
 
 var server = app.listen(3000, () => {
  console.log("Server is running on port ", server.address().port);
@@ -19,4 +20,4 @@ mongoose.connect(config.dbUrl, {useNewUrlParser: true}, (err) => {
 })
 
 // pass app to api routes
-require('./routes')(app, mongoose, config);
+require('./routes')(app, mongoose);
