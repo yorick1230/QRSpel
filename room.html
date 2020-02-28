@@ -42,9 +42,7 @@ $(() => {
 	      }
 	   }
 	});
-	}
-
-	$.ajax("api/room", {
+	}else{$.ajax("api/room", {
 	   type: "POST",
 	   statusCode: {
 	      200: function (response) {
@@ -55,6 +53,9 @@ $(() => {
 	      }
 	   }
 	});
+	}
+
+	
 
 	$("#backBtn").click(function(){
 		var confirm = window.confirm("Weet je zeker dat je terug wilt gaan?");
