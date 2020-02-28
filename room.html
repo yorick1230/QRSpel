@@ -28,6 +28,21 @@ crossorigin="anonymous"></script>
 <script>
 $(() => {
 	const urlParams = new URLSearchParams(window.location.search);
+	const room = urlParams.get('code');
+	
+	if(room != null && room != ""){
+	$.ajax("api/room?code="+room, {
+	   type: "GET",
+	   statusCode: {
+	      200: function (response) {
+	         $("#roomCode").text("Room: "+room);
+	      },
+	      404: function (response) {
+	         alert('Geen room gevonden met deze code');
+	      }
+	   }
+	});
+	}
 
 	$.ajax("api/room", {
 	   type: "POST",
