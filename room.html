@@ -12,6 +12,8 @@
 		<div class="col-md-12">
 			<h2 id="roomCode">Room:</h2> 
 		</div>
+		<img src="https://i.pinimg.com/originals/05/78/6f/05786faa826d02986d402bfc6210a6dc.png" hidden="1">
+		<canvas width="300" height="300" style='display: none;'></canvas>
 		<div class="col-md-12">
 			<div id="background-wrapper">
 				<table id="gridTable" class="table grid"></table>
@@ -24,9 +26,30 @@ integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
 crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script src="./raster.js"></script>
+<script src="./libs/jsQR.js"></script>
 
 <script>
 $(() => {
+
+	// get image data
+	const canvas = document.querySelector("canvas");
+	const ctx = canvas.getContext("2d");
+	const width = 300;
+	const height = 300;
+
+	const image = new Image;
+	image.src = './testqr.png';
+
+	image.onload = () => {
+		ctx.drawImage(image, 0, 0);
+		imageData = ctx.getImageData(0, 0, 300, 300);
+		matrix = jsQR(imageData.data, 300, 300);
+		var grid = clickableGrid(21,21, matrix.extractedRaw.data);
+
+	}
+
+	//jsQR();
+
 	const urlParams = new URLSearchParams(window.location.search);
 	const room = urlParams.get('code');
 	
