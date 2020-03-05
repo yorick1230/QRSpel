@@ -34,21 +34,17 @@ $(() => {
 	// get image data
 	const canvas = document.querySelector("canvas");
 	const ctx = canvas.getContext("2d");
-	const width = 300;
-	const height = 300;
 
 	const image = new Image;
-	image.src = './testqr.png';
 
 	image.onload = () => {
 		ctx.drawImage(image, 0, 0);
-		imageData = ctx.getImageData(0, 0, 300, 300);
-		matrix = jsQR(imageData.data, 300, 300);
-		var grid = clickableGrid(21,21, matrix.extractedRaw.data);
-
+		imageData = ctx.getImageData(0, 0, image.width, image.height);
+		matrix = jsQR(imageData.data, image.width, image.height);
+		var grid = clickableGrid(matrix.extractedRaw.width,matrix.extractedRaw.height, matrix.extractedRaw.data);
 	}
 
-	//jsQR();
+	image.src = './testqr.png';
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const room = urlParams.get('code');

@@ -47,6 +47,10 @@ module.exports = function(app, mongoose){
 	    res.sendfile(path.join(__dirname + '/index.html'));
 	})
 
+	app.get('/admin', (req, res) => {
+	    res.sendfile(path.join(__dirname + '/admin.html'));
+	})
+
 	app.get('/room', (req, res) => {
 	    res.sendfile(path.join(__dirname + '/room.html'));
 	})

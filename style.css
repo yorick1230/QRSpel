@@ -50,8 +50,6 @@ html, body {
 }
 
 .grid td {
-    cursor:pointer;
-    border:1px solid #ccc;
     padding: 0px;
     position: relative;
     border: none;
@@ -93,6 +91,15 @@ td:before {
 }
 .blackBlock{
 	background-color: black;
+}
+
+.form-signin{
+	width: 60%;
+	margin: 0 auto;
+}
+
+.form-signin > input, .form-signin > button{
+	margin: 10px;
 }
 
 /* Smartphones (portrait and landscape) ----------- */
