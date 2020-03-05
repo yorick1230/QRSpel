@@ -13,12 +13,17 @@ function clickableGrid(rows, cols, qrMatrix){
         }
         for (var c=0;c<cols;++c){
 
-            if(r > (rows/3) && c > (cols / 3) && showCoords){
-        	    var cell = $('<td>'+alphabet[alphabetCount-1]+((c - (cols / 3))+1)+'</td>');
+            if(r > (rows/3) && c > (cols / 3)){
+                if(showCoords){
+        	        var cell = $('<td><div>'+alphabet[alphabetCount-1]+((c - (cols / 3))+1)+'</div></td>');
+                }
+                else{
+                    var cell = $('<td><div>&nbsp;</div></td>');
+                }
             }else{
-                var cell = $('<td>&nbsp;&nbsp;</td>');
+                var cell = $('<td><div>&nbsp;</div></td>');
+                qrMatrix[i] === 0 ? $(cell).addClass("whiteBlock") : $(cell).addClass("blackBlock");
             }
-            qrMatrix[i] === 0 ? $(cell).addClass("blackBlock") : $(cell).addClass("whiteBlock");
 
         	$(tr).append(cell);
         	$(cell).click(function(el){

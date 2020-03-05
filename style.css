@@ -56,7 +56,7 @@ html, body {
     position: relative;
     border: none;
 }
-.grid td.clicked {
+.grid div.clicked {
     background-color: black;
 }
 #qrCode{
@@ -70,26 +70,33 @@ table{
 	table-layout: fixed;
 }
 
-td:after {
-  content: '';
-  display: block;
-  padding: 0px;
-}
 td {
-  text-align: center;
-  width: 100%;
-  font-size: medium;
+  position: relative;
+}
+
+td > div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+td:before {
+  content: "";
+  display: block;
+  padding-top: 75%;
 }
 
 .whiteBlock{
 	background-color: white;
 }
-.whiteBlock{
+.blackBlock{
 	background-color: black;
 }
 
 /* Smartphones (portrait and landscape) ----------- */
-@media screen
+@media only screen
 and (min-device-width : 380px)
 and (max-device-width : 580px) {
 	td{
