@@ -102,7 +102,6 @@ td:before {
 	margin: 10px;
 }
 
-/* Smartphones (portrait and landscape) ----------- */
 @media only screen
 and (min-device-width : 380px)
 and (max-device-width : 580px) {

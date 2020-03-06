@@ -11,19 +11,11 @@
 	<div class="row inner-content">
 		<div class="col-md-12">
 			<center>
-				<h2>Login</h2>
+				<h2>Dashboard</h2>
 			</center>
 		</div>
 		<div class="col-md-12">
-			<form class="form-signin">
-		      <label for="inputUser" class="sr-only">Gebruikersnaam</label>
-		      <input type="text" id="inputUser" class="form-control" placeholder="Gebruikersnaam" required="" autofocus="" autocomplete="off">
-		      <label for="inputPassword" class="sr-only">Wachtwoord</label>
-		      <input type="password" id="inputPassword" class="form-control" placeholder="Wachtwoord" required="" autocomplete="off"">
-		      <div class="checkbox mb-3">
-		      </div>
-		      <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
-		    </form>
+			<button id="newRoom">Maak nieuwe room aan</button>
 		</div>
 
 	</div>
@@ -32,5 +24,14 @@
 integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
 crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	$(() => {
+
+		$("#newRoom").click(function(){
+			prompt("Voer url in voor het genereren van de qr-code");
+		});
+
+	});
+</script>
 </body>
 </html>

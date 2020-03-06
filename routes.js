@@ -48,7 +48,19 @@ module.exports = function(app, mongoose){
 	})
 
 	app.get('/admin', (req, res) => {
-	    res.sendfile(path.join(__dirname + '/admin.html'));
+		if(req.session.loggedin){
+	    	res.sendfile(path.join(__dirname + '/dashboard.html'));
+		}else{
+			res.sendfile(path.join(__dirname + '/admin.html'));
+		}
+	})
+
+	app.get('/dashboard', (req, res) => {
+		if(req.session.loggedin){
+	    	res.sendfile(path.join(__dirname + '/dashboard.html'));
+		}else{
+			res.sendfile(path.join(__dirname + '/admin.html'));
+		}
 	})
 
 	app.get('/room', (req, res) => {
