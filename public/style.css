@@ -102,6 +102,10 @@ td:before {
 	margin: 10px;
 }
 
+#newRoom{
+	margin: 10px;
+}
+
 @media only screen
 and (min-device-width : 380px)
 and (max-device-width : 580px) {

@@ -53,9 +53,9 @@ module.exports = function(app, mongoose){
 			} else {
 				if(result.password == passw){
 					req.session.loggedin = true; // user is loggedin
-					res.sendStatus(200);
+					res.status(200).send({status: "OK" });
 				}else{
-					res.sendStatus(401);
+					res.status(401).send({status: "Unauthorized" });
 				}
 			}
 		});
