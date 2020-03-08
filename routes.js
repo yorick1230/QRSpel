@@ -5,8 +5,15 @@ module.exports = function(app, mongoose){
 	    code: String
 	});
 
+	var UserSchema = mongoose.Schema({
+	    username: String,
+	    password: String
+	});
+
+
 	// model objects in database
 	var Room = mongoose.model("Room", RoomSchema, "rooms");
+	var User = mongoose.model("User", UserSchema, "users");
 
 	// find a room by code
     app.get('/api/room', (req, res) => {
@@ -28,6 +35,31 @@ module.exports = function(app, mongoose){
 		  res.json(result);
 		}
 	  });
+	});
+
+	app.post('/api/auth', (req, res) => {
+	 	// check for basic auth header
+		if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+			return res.status(401).json({ message: 'Missing Authorization Header' });
+		}
+
+		const base64Credentials =  req.headers.authorization.split(' ')[1];
+		const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+		const [user, passw] = credentials.split(':');
+
+		User.findOne({username: user}, function(err, result){
+			if (result === null || err) {
+				res.sendStatus(401);
+			} else {
+				if(result.password == passw){
+					req.session.loggedin = true; // user is loggedin
+					res.sendStatus(200);
+				}else{
+					res.sendStatus(401);
+				}
+			}
+		});
+
 	});
 
 	function generateRoomID() {
