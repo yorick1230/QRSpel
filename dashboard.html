@@ -8,6 +8,7 @@
 </head>
 <body>
 <div class="container">
+	<button class="btn" id="backBtn">Uitloggen</button>
 	<div class="row inner-content">
 		<div class="col-md-12">
 			<center>
@@ -15,7 +16,13 @@
 			</center>
 		</div>
 		<div class="col-md-12">
-			<button type="button" class="btn btn-primary" id="newRoom">Maak nieuwe room aan</button>
+			<div class="input-group mb-3">
+			  <div class="input-group-prepend">
+			    <span class="input-group-text" id="basic-addon1">URL</span>
+			  </div>
+			  <input id="inputUrl" type="text" class="form-control" placeholder="http://" aria-label="Url" aria-describedby="basic-addon1">
+			</div>
+			<button type="button" class="btn btn-block btn-primary" id="newRoom">Maak nieuwe room aan</button>
 		</div>
 
 	</div>
@@ -25,14 +32,6 @@ integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
 crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script src="./scripts/auth.js"></script>
-<script type="text/javascript">
-	$(() => {
-
-		$("#newRoom").click(function(){
-			prompt("Voer url in voor het genereren van de qr-code");
-		});
-
-	});
-</script>
+<script src="./scripts/dashboard.js"></script>
 </body>
 </html>

@@ -1,15 +1,20 @@
-module.exports = function(app, mongoose){
+const qrreader = require('./public/libs/jsQR.js');
+const qrgenerator = require('qrcode');
+const sizeOf = require('image-size');
+const { createCanvas, loadImage } = require('canvas')
 
+module.exports = function(app, mongoose){
 	// #########################   API    ###############################
 	var RoomSchema = mongoose.Schema({
-	    code: String
+	    code: String,
+	    availableSpots: String,
+	    qrcode: String
 	});
 
 	var UserSchema = mongoose.Schema({
 	    username: String,
 	    password: String
 	});
-
 
 	// model objects in database
 	var Room = mongoose.model("Room", RoomSchema, "rooms");
@@ -27,14 +32,60 @@ module.exports = function(app, mongoose){
 	})
 
 	app.post('/api/room', (req, res) => {
-	  var id = generateRoomID();
-	  Room.create({code: id}, function(err, result) {
-		if (result === null || err) {
-		  res.sendStatus(404);
-		} else {
-		  res.json(result);
+		if(!req.session.loggedin){
+			return res.status(401).json({ message: 'You need to be logged in to be able to do this.' });
 		}
-	  });
+
+		// read given url and generate qrcode
+		if(req.body.targeturl === "" || req.body.targeturl === null){
+			return res.status(404).json({ message: 'Targeturl is required.' });
+		}
+
+		qrgenerator.toFile('./temp/tmp.png', req.body.targeturl, {version: 4}, function (err) {
+			if(err)
+				return res.status(404).json({ message: 'Could not generate qrcode.' });
+
+			// get image dimensions
+			var dimensions = sizeOf('./temp/tmp.png');
+
+			// convert image to array of binary data
+			const canvas = createCanvas(dimensions.width, dimensions.height);
+			const ctx = canvas.getContext('2d');
+
+			loadImage('./temp/tmp.png').then((image) => {
+				ctx.drawImage(image, 0, 0);
+				imageData = ctx.getImageData(0, 0, dimensions.width, dimensions.height);
+				matrix = qrreader(imageData.data, dimensions.width, dimensions.height);
+
+				var rows = matrix.extractedRaw.width;
+				var cols = matrix.extractedRaw.height;
+				var availableSpots = [];
+				var i = 0;
+			    for (var r=0;r<rows;++r){
+			        for (var c=0;c<cols;++c){
+			            if(r > (rows/3) && c > (cols / 3)){
+			                if(matrix.extractedRaw.data[i] === 1){
+			                	// if black square, add to available spots
+			                	availableSpots.push([r,c]);
+			                }
+			            }
+			            i++;
+			        }
+			    }
+			    // save all in mongodb
+			    var id = generateRoomID();
+			    var availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
+			    var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
+
+			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares}, function(err, result) {
+					if (result === null || err) {
+						res.sendStatus(404);
+					} else {
+						res.json(result);
+					}
+				});
+			});
+		});
 	});
 
 	app.post('/api/auth', (req, res) => {
@@ -59,7 +110,11 @@ module.exports = function(app, mongoose){
 				}
 			}
 		});
+	});
 
+	app.post('/api/logout', (req, res) => {
+	 	req.session.loggedin = false;
+	 	res.status(200).send({status: "OK" });
 	});
 
 	function generateRoomID() {
