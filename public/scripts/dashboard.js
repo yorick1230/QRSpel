@@ -28,4 +28,20 @@ $(() => {
 		    }
 		});
 	});
+
+	$.ajax({
+		type: 'POST',
+		url: "api/getAllRooms",
+		data: {},
+		dataType: "json",
+		success: function (result) {
+		   console.log(result);
+		   for(var i = 0; i < result.length; i++){
+			    $("#roomsTable").append('<tr><td>'+ result[i].code +'</td></tr>');
+		   }
+		},
+		error: function(err){
+			console.log(err);
+		}
+	});
 });

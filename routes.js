@@ -20,6 +20,22 @@ module.exports = function(app, mongoose){
 	var Room = mongoose.model("Room", RoomSchema, "rooms");
 	var User = mongoose.model("User", UserSchema, "users");
 
+	//hardcoded user for testing purposes.
+	if(User.findOne({username:"test"}) != null){
+		User.create({username:"test", password:"test"});
+	}
+
+	// find a room by code
+    app.post('/api/getAllRooms', (req, res) => {
+		Room.find({}, function(err, result) {
+		if (result === null || err) {
+		  res.sendStatus(404);
+		} else {
+		  res.json(result);
+		}
+	  });
+  	})
+	
 	// find a room by code
     app.get('/api/room', (req, res) => {
 	  	Room.findOne({code: req.query.code}, function(err, result) {

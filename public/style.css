@@ -64,15 +64,15 @@ html, body {
 	z-index: 5;
 	left: 0%;
 }
-table{
+#gridTable{
 	table-layout: fixed;
 }
 
-td {
+#gridTable > td {
   position: relative;
 }
 
-td > div {
+#gridTable > td > div {
   position: absolute;
   top: 0;
   left: 0;
@@ -80,7 +80,7 @@ td > div {
   right: 0;
 }
 
-td:before {
+#gridTable > td:before {
   content: "";
   display: block;
   padding-top: 75%;
