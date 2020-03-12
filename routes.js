@@ -9,7 +9,8 @@ module.exports = function(app, mongoose){
 	    code: String,
 	    availableSpots: String,
 		qrcode: String,
-		active: Boolean
+		active: Boolean,
+		url: String
 	});
 
 	var UserSchema = mongoose.Schema({
@@ -116,9 +117,10 @@ module.exports = function(app, mongoose){
 			    // save all in mongodb
 			    var id = generateRoomID();
 			    var availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
-			    var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
+				var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
+				var url = req.body.targeturl.trim();
 
-			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, active: false}, function(err, result) {
+			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, active: false, url}, function(err, result) {
 					if (result === null || err) {
 						res.sendStatus(404);
 					} else {

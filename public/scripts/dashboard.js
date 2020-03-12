@@ -7,7 +7,9 @@ $(() => {
 		success: function (result) {
 		   console.log(result);
 		   for(var i = 0; i < result.length; i++){
-				$("#roomsTable").append('<tr><td>'+ result[i].code +'</td><td><button style="float: right;" class="btn btn-success" name="toggleRoomAccess" id="' + 
+				$("#roomsTable").append('<tr><td>'+ result[i].code +
+				'</td><td>'+ result[i].url +
+				'</td><td><button style="float: right;" class="btn btn-success" name="toggleRoomAccess" id="' + 
 				result[i].code + '">' + (result[i].active ? 'Stop' : 'Start') + '</button><button name="deleteRoom" style="float: right;" class="btn btn-danger" id="' + 
 				result[i].code + '">Delete</button></td></tr>');
 		   }		   
@@ -73,8 +75,7 @@ $(() => {
 		    data: {targeturl: $("#inputUrl").val()},
 		    dataType: "json",
 		    success: function (result) {
-		       console.log(result);
-		       $(".col-md-12:first").prepend('<div class="alert alert-success" role="alert">Room succesvol aangemaakt, uw room code is: '+result.code+'</div>');
+			   location.reload();
 		    },
 		    error: function(err){
 		    	console.log(err);
