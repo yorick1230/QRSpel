@@ -8,7 +8,8 @@ module.exports = function(app, mongoose){
 	var RoomSchema = mongoose.Schema({
 	    code: String,
 	    availableSpots: String,
-	    qrcode: String
+		qrcode: String,
+		active: Boolean
 	});
 
 	var UserSchema = mongoose.Schema({
@@ -21,9 +22,11 @@ module.exports = function(app, mongoose){
 	var User = mongoose.model("User", UserSchema, "users");
 
 	//hardcoded user for testing purposes.
-	if(User.findOne({username:"test"}) != null){
-		User.create({username:"test", password:"test"});
-	}
+	User.findOne({username:"test"}, function(err) {
+		if (err) {
+			User.create({username:"test", password:"test"});
+		}
+	});
 
 	// Delete a room
 	app.post('/api/deleteRoom', (req, res) => {
@@ -34,6 +37,17 @@ module.exports = function(app, mongoose){
 			return res.status(200).json({ message: 'OK' });
 		}
 	});
+	})
+
+	// toggle the access of a room
+	app.post('/api/toggleRoomAccess', (req, res) => {
+		Room.findOne({code: req.body.roomCode}, function(err, obj){
+			if (obj === null || err) {
+				res.sendStatus(404);
+			  } else {
+				Room.findOneAndUpdate({code: obj.code}, {active: !obj.active}).then(() => res.status(200).json({message: 'OK', active: !obj.active}));;
+			  }
+		});
 	})
 
 	// find a room by code
@@ -104,7 +118,7 @@ module.exports = function(app, mongoose){
 			    var availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
 			    var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
 
-			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares}, function(err, result) {
+			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, active: false}, function(err, result) {
 					if (result === null || err) {
 						res.sendStatus(404);
 					} else {
