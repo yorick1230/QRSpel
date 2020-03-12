@@ -1,4 +1,36 @@
 $(() => {
+	$.ajax({
+		type: 'POST',
+		url: "api/getAllRooms",
+		data: {},
+		dataType: "json",
+		success: function (result) {
+		   console.log(result);
+		   for(var i = 0; i < result.length; i++){
+			    $("#roomsTable").append('<tr><td>'+ result[i].code +'</td><td><button name="deleteRoom" style="float: right;" class="btn btn-danger" id="' + result[i].code + '">Delete</button></td></tr>');
+		   }		   
+			$( "button[name='deleteRoom']" ).click(function(){
+				// Delete a room based on room code
+				var element = this;
+				$.ajax({
+					type: 'POST',
+					url: "api/deleteRoom",
+					data: {roomCode: $(this).attr('id')},
+					dataType: "json",
+					success: function (result) {
+						$(element).closest("tr").remove();
+						$(".col-md-12:first").prepend('<div class="alert alert-success" role="alert">Room succesvol verwijdert.</div>');
+					},
+					error: function(err){
+						console.log(err);
+					}
+				});
+			});
+		},
+		error: function(err){
+			console.log(err);
+		}
+	});
 	$("#backBtn").click(function(){
 		// Logout admin
 		$.ajax({
@@ -27,21 +59,5 @@ $(() => {
 		    	console.log(err);
 		    }
 		});
-	});
-
-	$.ajax({
-		type: 'POST',
-		url: "api/getAllRooms",
-		data: {},
-		dataType: "json",
-		success: function (result) {
-		   console.log(result);
-		   for(var i = 0; i < result.length; i++){
-			    $("#roomsTable").append('<tr><td>'+ result[i].code +'</td></tr>');
-		   }
-		},
-		error: function(err){
-			console.log(err);
-		}
 	});
 });

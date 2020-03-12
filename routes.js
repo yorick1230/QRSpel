@@ -25,6 +25,17 @@ module.exports = function(app, mongoose){
 		User.create({username:"test", password:"test"});
 	}
 
+	// Delete a room
+	app.post('/api/deleteRoom', (req, res) => {
+		Room.deleteOne({code: req.body.roomCode}, function(err) {
+		if (err) {
+			res.sendStatus(404);
+		} else {
+			return res.status(200).json({ message: 'OK' });
+		}
+	});
+	})
+
 	// find a room by code
     app.post('/api/getAllRooms', (req, res) => {
 		Room.find({}, function(err, result) {
