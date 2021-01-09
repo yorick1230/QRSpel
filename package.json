@@ -14,8 +14,8 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "image-size": "^0.8.3",
-    "mongoose": "^5.9.2",
+    "mongoose": "^5.11.10",
     "qrcode": "^1.4.4",
-    "socket.io": "^2.3.0"
+    "socket.io": "^3.0.5"
   }
 }

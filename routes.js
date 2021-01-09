@@ -1,6 +1,7 @@
 const qrreader = require('./public/libs/jsQR.js');
 const qrgenerator = require('qrcode');
 const sizeOf = require('image-size');
+const fs = require('fs');
 const { createCanvas, loadImage } = require('canvas')
 
 module.exports = function(app, mongoose){
@@ -23,8 +24,8 @@ module.exports = function(app, mongoose){
 	var User = mongoose.model("User", UserSchema, "users");
 
 	//hardcoded user for testing purposes.
-	User.findOne({username:"test"}, function(err) {
-		if (err) {
+	User.findOne({username:"test"}, function(err, usr) {
+		if (err || usr === null) {
 			User.create({username:"test", password:"test"});
 		}
 	});
@@ -82,6 +83,8 @@ module.exports = function(app, mongoose){
 		if(req.body.targeturl === "" || req.body.targeturl === null){
 			return res.status(404).json({ message: 'Targeturl is required.' });
 		}
+
+		// check if temp directory exists
 
 		qrgenerator.toFile('./temp/tmp.png', req.body.targeturl, {version: 4}, function (err) {
 			if(err)
@@ -174,26 +177,26 @@ module.exports = function(app, mongoose){
 	var path = require('path');
 	
 	app.get('/', (req, res) => {
-	    res.sendfile(path.join(__dirname + '/index.html'));
+	    res.sendFile(path.join(__dirname + '/index.html'));
 	})
 
 	app.get('/admin', (req, res) => {
 		if(req.session.loggedin){
-	    	res.sendfile(path.join(__dirname + '/dashboard.html'));
+	    	res.sendFile(path.join(__dirname + '/dashboard.html'));
 		}else{
-			res.sendfile(path.join(__dirname + '/admin.html'));
+			res.sendFile(path.join(__dirname + '/admin.html'));
 		}
 	})
 
 	app.get('/dashboard', (req, res) => {
 		if(req.session.loggedin){
-	    	res.sendfile(path.join(__dirname + '/dashboard.html'));
+	    	res.sendFile(path.join(__dirname + '/dashboard.html'));
 		}else{
-			res.sendfile(path.join(__dirname + '/admin.html'));
+			res.sendFile(path.join(__dirname + '/admin.html'));
 		}
 	})
 
 	app.get('/room', (req, res) => {
-	    res.sendfile(path.join(__dirname + '/room.html'));
+	    res.sendFile(path.join(__dirname + '/room.html'));
 	})
 }

@@ -10,26 +10,34 @@
 <div class="container">
 	<button class="btn" id="backBtn"><-- Terug</button>
 	<div class="row inner-content">
-		<div class="col-md-12">
-			<h2 id="roomCode">Room:</h2> 
-		</div>
-		<canvas width="300" height="300" style='display: none;'></canvas>
-		<div class="col-md-12">
-			<div id="background-wrapper">
-				<table id="gridTable" class="table grid"></table>
+		<div class="qrgamecontent">
+			<div class="col-md-12">
+				<h2 id="roomCode">Room:</h2> 
 			</div>
+			<canvas width="300" height="300" style='display: none;'></canvas>
+			<div class="col-md-12">
+				<div id="background-wrapper">
+					<table id="gridTable" class="table grid"></table>
+				</div>
+			</div>
+			<div class="col-md-12">
+				<h2 id="roomSpelerCode">Spelercode:</h2> 
+			</div>
+			<input type="text" name="spelerCode" class="form-control spelerCode" placeholder="Spelercode">
+			<button class="spelerCode btn btn-lg btn-primary btn-block">Blokken uitwisselen</button>
 		</div>
-		<div class="col-md-12">
-			<h2 id="roomSpelerCode">Spelercode:</h2> 
+		<div class='waiting-area'>
+			<img src="./images/loading.gif" alt="loading">
+			<h3>Aan het wachten op andere spelers..</h3>
+			<p class='playercountmsg'></p>
 		</div>
-		<input type="text" name="spelerCode" class="form-control spelerCode" placeholder="Spelercode">
-		<button class="spelerCode btn btn-lg btn-primary btn-block">Blokken ophalen</button>
 	</div>
 </div>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"
 integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
 crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.socket.io/socket.io-3.0.5.min.js"></script>
 <script src="./scripts/raster.js"></script>
 <script src="./scripts/room.js"></script>
 <script src="./libs/jsQR.js"></script>

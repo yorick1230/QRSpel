@@ -103,7 +103,23 @@ html, body {
 }
 
 .spelerCode{
-	margin: 10px;
+	margin-top: 10px;
+}
+
+.qrgamecontent{
+	display: none;
+}
+
+.waiting-area{
+	margin: 0 auto;
+	text-align: center;
+}
+
+.waiting-area > img{
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	width: 50%;
 }
 
 @media only screen
