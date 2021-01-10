@@ -108,9 +108,12 @@ html, body {
 
 .qrgamecontent{
 	display: none;
+	text-align: center;
+	width: 100%;
 }
 
 .waiting-area{
+	display: none;
 	margin: 0 auto;
 	text-align: center;
 }
@@ -120,6 +123,14 @@ html, body {
 	margin-left: auto;
 	margin-right: auto;
 	width: 50%;
+}
+
+.centertext{
+	text-align: center;
+}
+
+.col-md-12{
+	text-align: left;
 }
 
 @media only screen

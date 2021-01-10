@@ -1,16 +1,15 @@
 const qrreader = require('./public/libs/jsQR.js');
 const qrgenerator = require('qrcode');
 const sizeOf = require('image-size');
-const fs = require('fs');
 const { createCanvas, loadImage } = require('canvas')
 
-module.exports = function(app, mongoose){
+module.exports = function(app, mongoose, io){
 	// #########################   API    ###############################
 	var RoomSchema = mongoose.Schema({
 	    code: String,
 	    availableSpots: String,
 		qrcode: String,
-		active: Boolean,
+		status: String,
 		url: String
 	});
 
@@ -23,11 +22,47 @@ module.exports = function(app, mongoose){
 	var Room = mongoose.model("Room", RoomSchema, "rooms");
 	var User = mongoose.model("User", UserSchema, "users");
 
+	// check database for active rooms
+	var activeRooms = initActiveRooms();
+
 	//hardcoded user for testing purposes.
-	User.findOne({username:"test"}, function(err, usr) {
-		if (err || usr === null) {
-			User.create({username:"test", password:"test"});
-		}
+	// User.findOne({username:"test"}, function(err, usr) {
+	// 	if (err || usr === null) {
+	// 		User.create({username:"test", password:"test"});
+	// 	}
+	// });
+
+	// socket.io listening for players
+	io.on('connection', (socket) => {
+		console.log(`Socket ${socket.id} connected.`);
+		
+		socket.on('authenticate', (data) => {
+			// link username and roomcode to the socket
+			socket.username = data.username;
+			socket.roomCode = data.roomCode;
+
+			// add player to the room if he has not been added yet
+			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
+			if(roomObj !== undefined && roomObj.room.status === "open"){
+				var added = (roomObj.players.find(user => user.username === data.username)) !== undefined;
+				if(!added){
+					roomObj.players.push({username: data.username, squares: []});
+				}
+				io.sockets.emit('playercount',{ playercount: roomObj.players.length, room: data.roomCode});
+			}
+		});
+
+		socket.on('disconnect', () => {
+			if(socket.username && socket.roomCode){
+				// notify players of the disconnect & remove from the game
+				var room = activeRooms.find(o => o.room.code === socket.roomCode);
+				if(room !== undefined){
+					room.players = room.players.filter(e => e.username !== socket.username);
+					io.sockets.emit('playercount',{ playercount: room.players.length, room: socket.roomCode});
+				}
+			}
+			console.log(`Socket ${socket.id} disconnected.`);
+		});
 	});
 
 	// Delete a room
@@ -46,13 +81,57 @@ module.exports = function(app, mongoose){
 		Room.findOne({code: req.body.roomCode}, function(err, obj){
 			if (obj === null || err) {
 				res.sendStatus(404);
+				return;
 			  } else {
-				Room.findOneAndUpdate({code: obj.code}, {active: !obj.active}).then(() => res.status(200).json({message: 'OK', active: !obj.active}));;
+				  
+				switch(obj.status){
+					case "open":
+						obj.status = "playing";
+						// calculate the qr-code puzzle for the amount of players
+						var roomObj = activeRooms.find(o => o.room.code === obj.code);
+						if(roomObj !== undefined){
+							const playerCount = roomObj.players.length;
+							// decode base64 and calculate squares for each player
+							const buff = Buffer.from(roomObj.room.availableSpots, 'base64');
+							const availableSpotsStr = buff.toString('utf-8');
+							const availableSpots = eval(availableSpotsStr);
+							const squarePerPlayer = availableSpots.length / playerCount;
+							
+							var i = 0;
+							var player = roomObj.players[0];
+							availableSpots.forEach(function(square) {
+								if(i !== 0 && i % squarePerPlayer === 0){
+									player = roomObj.players[Math.round(i / squarePerPlayer)]; // give squares to next player
+								}
+								player.squares.push(square);
+								i++;
+							});
+
+							// send the squares to all clients
+							io.sockets.emit('squares',{roomObj: roomObj}); //update clients
+						}
+
+						io.sockets.emit('roomStatus',{ roomCode: obj.code, status: obj.status}); //update clients
+					break;
+					case "playing":
+						obj.status = "closed";
+						activeRooms = activeRooms.filter(function(el) { return el.room.code != obj.code; }); // remove from active rooms
+						io.sockets.emit('roomStatus',{ roomCode: obj.code, status: obj.status}); //update clients
+					break;
+					case "closed":
+						obj.status = "open";
+						activeRooms.push({room: obj, players: []}); // add it to active rooms
+						req.session.username = undefined; // reset admin's username to make sure he gets a new one when joining a game
+					break;
+				}
+
+				// update database
+				Room.findOneAndUpdate({code: obj.code}, {status: obj.status}).then(() => res.status(200).json({status: obj.status}));
 			  }
 		});
 	})
 
-	// find a room by code
+	// get all rooms
     app.post('/api/getAllRooms', (req, res) => {
 		Room.find({}, function(err, result) {
 		if (result === null || err) {
@@ -74,6 +153,15 @@ module.exports = function(app, mongoose){
 		});
 	})
 
+	// get the user's username and link it to the given socket, 404 if not set yet
+    app.get('/api/username', (req, res) => {
+		if(req.session.username){
+			res.json(req.session.username);
+		}else{
+			res.sendStatus(404);
+		}
+	});
+
 	app.post('/api/room', (req, res) => {
 		if(!req.session.loggedin){
 			return res.status(401).json({ message: 'You need to be logged in to be able to do this.' });
@@ -85,7 +173,6 @@ module.exports = function(app, mongoose){
 		}
 
 		// check if temp directory exists
-
 		qrgenerator.toFile('./temp/tmp.png', req.body.targeturl, {version: 4}, function (err) {
 			if(err)
 				return res.status(404).json({ message: 'Could not generate qrcode.' });
@@ -123,7 +210,7 @@ module.exports = function(app, mongoose){
 				var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
 				var url = req.body.targeturl.trim();
 
-			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, active: false, url}, function(err, result) {
+			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url} , function(err, result) {
 					if (result === null || err) {
 						res.sendStatus(404);
 					} else {
@@ -163,6 +250,42 @@ module.exports = function(app, mongoose){
 	 	res.status(200).send({status: "OK" });
 	});
 
+	async function generateUniqueUsername(roomCode){
+		var username = generateRoomID();
+		var unique = true;
+
+		// find the room the player is joining and check if the username is unique
+		await Room.findOne({code: roomCode}, function(err, obj){
+			// check if game is waiting for players, no need to generate a name if the game already started or closed
+			if(obj.status !== "open"){
+				return null;
+			}
+
+			//TODO: check if username is unique
+			
+			// username unique? return it to the user
+			if(!unique){
+				username = generateUniqueUsername(roomCode);
+			}
+		});
+		return Promise.resolve(username);
+	}
+	
+	// checks the database for games that are 'open' for players to join and adds them to the activeRooms array
+	function initActiveRooms(){
+		var rooms = [];
+		Room.find({status: "open"}, function(err, result) {
+			if (result === null || err) {
+				console.log(err);
+			} else {
+				result.forEach(room => {
+					rooms.push({room: room, players: []});
+				});
+			}
+		});
+		return rooms;
+	}
+
 	function generateRoomID() {
 		var result           = '';
 		var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -197,6 +320,14 @@ module.exports = function(app, mongoose){
 	})
 
 	app.get('/room', (req, res) => {
-	    res.sendFile(path.join(__dirname + '/room.html'));
+		if(req.session.username == null){	
+			// generate username if the user is new and the room is open
+			generateUniqueUsername(req.query.code).then((user) => {
+				req.session.username = user;
+				res.sendFile(path.join(__dirname + '/room.html'));
+			});
+		}else{
+			res.sendFile(path.join(__dirname + '/room.html'));
+		}
 	})
 }

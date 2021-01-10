@@ -26,24 +26,19 @@ var server = http.listen(3000, () => {
 });
 
 // socket.io listening for players
-var connectCounter = 0; // counts the amount of socket.io connections
 io.on('connection', (socket) => {
   console.log(`Socket ${socket.id} connected.`);
-  connectCounter++;
-
-  io.sockets.emit('broadcast',{ playercount: connectCounter});
 
   socket.on('disconnect', () => {
     console.log(`Socket ${socket.id} disconnected.`);
-    connectCounter--;
-    io.sockets.emit('broadcast',{ playercount: connectCounter});
   });
 });
 
 // connect mongodb database
+//mongoose.set('useFindAndModify', false);
 mongoose.connect(config.dbUrl, {useNewUrlParser: true, useUnifiedTopology: true }, (err) => { 
    console.log("Mongoose connected",err);
 })
 
-// pass app to api routes
-require('./routes')(app, mongoose);
+// pass app, mongoose and io to api routes
+require('./routes')(app, mongoose, io);
