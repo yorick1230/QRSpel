@@ -21,7 +21,7 @@ const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
 // server start listening
-var server = http.listen(3000, () => {
+var server = http.listen(config.port, () => {
  console.log("Server is running on port ", server.address().port);
 });
 
