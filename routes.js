@@ -86,9 +86,16 @@ module.exports = function(app, mongoose, io){
 				});
 
 				if(player1 && player2){
-					// merge array so they get the same squares as other player
-					player1.squares = player1.squares.concat(player2.squares);
-					player2.squares = player2.squares.concat(player1.squares); 
+					// calculate amount of squares per player
+					const playerCount = roomObj.players.length;
+					const buff = Buffer.from(roomObj.room.availableSpots, 'base64');
+					const availableSpotsStr = buff.toString('utf-8');
+					const availableSpots = eval(availableSpotsStr);
+					const squarePerPlayer = Math.floor(availableSpots.length / playerCount);
+
+					// merge array (without dupes) so they get the same squares as other player
+					player1.squares = [...new Set([...player1.squares ,...player2.squares.slice(0, squarePerPlayer)])];
+					player2.squares = [...new Set([...player2.squares ,...player1.squares.slice(0, squarePerPlayer)])];
 				
 					roomObj.players.forEach(function(player){
 						if(player.username === data.myUserCode){
@@ -98,18 +105,13 @@ module.exports = function(app, mongoose, io){
 						}
 					});
 
-					// check if player has won the game
-					const buff = Buffer.from(roomObj.room.availableSpots, 'base64');
-					const availableSpotsStr = buff.toString('utf-8');
-					const availableSpots = eval(availableSpotsStr).length;
-
-					if(player1.squares.length >= availableSpots){
+					if(availableSpots.length % player1.squares.length < squarePerPlayer){
 						socket.emit('winner',{url: roomObj.room.url});
 					}else{
 						socket.emit('squares',{roomObj: roomObj}); // send current state of game
 					}
 
-					if(player2.squares.length >= availableSpots){
+					if(availableSpots.length % player2.squares.length < squarePerPlayer){
 						io.sockets.sockets.forEach(function(sock){
 							if(sock.username === data.userCode){
 								sock.emit('winner',{url: roomObj.room.url});
@@ -177,11 +179,10 @@ module.exports = function(app, mongoose, io){
 							availableSpots.forEach(function(square) {
 								if(i !== 0 && i % Math.floor(squarePerPlayer) === 0){
 									player = roomObj.players[Math.ceil(i / squarePerPlayer)]; // give squares to next player
-									if(!player){
-										player = roomObj.players[Math.ceil(i / squarePerPlayer)-1]; // give squares to next player
-									}
 								}
-								player.squares.push(square);
+								if(player){
+									player.squares.push(square);
+								}
 								i++;
 							});
 
