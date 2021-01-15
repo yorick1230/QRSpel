@@ -64,6 +64,12 @@ $(() => {
 		}
 	});
 
+	$("button.spelerCode").click(function(){
+		if($("input.spelerCode").val().length === 4){
+			socket.emit('exchangeBlocks', {myUserCode: username,userCode: $("input.spelerCode").val(), roomCode: room});
+		}
+	});
+
 	socket.on('connect', (we) => {
 		console.log('connected!');
 

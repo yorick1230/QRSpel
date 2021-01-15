@@ -37,29 +37,85 @@ module.exports = function(app, mongoose, io){
 		console.log(`Socket ${socket.id} connected.`);
 		
 		socket.on('authenticate', (data) => {
+			// check if it is a reconnect by checking if the username exists.
+			var reconnect = false;
+			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
+
+			console.log('authenticating '+data.username);
+
+			if(roomObj){
+				roomObj.players.forEach(function(player){
+					if(player.username === data.username){
+						console.log('reconnect!');
+						reconnect = true;
+					}
+				});
+			}
+
 			// link username and roomcode to the socket
 			socket.username = data.username;
 			socket.roomCode = data.roomCode;
 
 			// add player to the room if he has not been added yet
-			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
-			if(roomObj !== undefined && roomObj.room.status === "open"){
+			if(roomObj && roomObj.room.status === "open"){
 				var added = (roomObj.players.find(user => user.username === data.username)) !== undefined;
 				if(!added){
 					roomObj.players.push({username: data.username, squares: []});
 				}
 				io.sockets.emit('playercount',{ playercount: roomObj.players.length, room: data.roomCode});
+			}else if(reconnect && roomObj.room.status === "playing"){
+				socket.emit('squares',{roomObj: roomObj}); // send current state of game
+			}
+		});
+
+		socket.on('exchangeBlocks', (data) => {
+			console.log(data.userCode);
+			console.log(data.roomCode);
+
+			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
+			var player1;
+			var player2;
+
+			if(roomObj){
+				roomObj.players.forEach(function(player){
+					if(player.username === data.myUserCode){
+						player1 = player;
+					}else if(player.username === data.userCode){
+						player2 = player;
+					}
+				});
+
+				if(player1 && player2){
+					// merge array so they get the same squares as other player
+					player1.squares = player1.squares.concat(player2.squares);
+					player2.squares = player2.squares.concat(player1.squares); 
+				}
+
+				roomObj.players.forEach(function(player){
+					if(player.username === data.myUserCode){
+						player = player1;
+					}else if(player.username === data.userCode){
+						player = player2;
+					}
+				});
+				io.sockets.sockets.forEach(function(sock){
+					if(sock.username === data.userCode){
+						sock.emit('squares',{roomObj: roomObj});
+					}
+				});
+
+				socket.emit('squares',{roomObj: roomObj}); // send current state of game
 			}
 		});
 
 		socket.on('disconnect', () => {
 			if(socket.username && socket.roomCode){
 				// notify players of the disconnect & remove from the game
-				var room = activeRooms.find(o => o.room.code === socket.roomCode);
-				if(room !== undefined){
-					room.players = room.players.filter(e => e.username !== socket.username);
-					io.sockets.emit('playercount',{ playercount: room.players.length, room: socket.roomCode});
-				}
+				// var room = activeRooms.find(o => o.room.code === socket.roomCode);
+				// if(room !== undefined){
+				// 	room.players = room.players.filter(e => e.username !== socket.username);
+				// 	io.sockets.emit('playercount',{ playercount: room.players.length, room: socket.roomCode});
+				// }
 			}
 			console.log(`Socket ${socket.id} disconnected.`);
 		});
@@ -89,6 +145,7 @@ module.exports = function(app, mongoose, io){
 						obj.status = "playing";
 						// calculate the qr-code puzzle for the amount of players
 						var roomObj = activeRooms.find(o => o.room.code === obj.code);
+						roomObj.room.status = "playing";
 						if(roomObj !== undefined){
 							const playerCount = roomObj.players.length;
 							// decode base64 and calculate squares for each player
