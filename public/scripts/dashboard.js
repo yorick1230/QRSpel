@@ -24,7 +24,7 @@ $(() => {
 					dataType: "json",
 					success: function (result) {
 						$(element).closest("tr").remove();
-						$(".col-md-12:first").prepend('<div class="alert alert-success" role="alert">Room succesvol verwijdert.</div>');
+						$(".col-md-12:first").prepend('<div class="alert alert-success" role="alert">Room succesvol verwijderd.</div>');
 						setTimeout(function(){
 							$('.alert').remove();
 							}, 5000);
