@@ -89,22 +89,40 @@ module.exports = function(app, mongoose, io){
 					// merge array so they get the same squares as other player
 					player1.squares = player1.squares.concat(player2.squares);
 					player2.squares = player2.squares.concat(player1.squares); 
+				
+					roomObj.players.forEach(function(player){
+						if(player.username === data.myUserCode){
+							player = player1;
+						}else if(player.username === data.userCode){
+							player = player2;
+						}
+					});
+
+					// check if player has won the game
+					const buff = Buffer.from(roomObj.room.availableSpots, 'base64');
+					const availableSpotsStr = buff.toString('utf-8');
+					const availableSpots = eval(availableSpotsStr).length;
+
+					if(player1.squares.length >= availableSpots){
+						socket.emit('winner',{url: roomObj.room.url});
+					}else{
+						socket.emit('squares',{roomObj: roomObj}); // send current state of game
+					}
+
+					if(player2.squares.length >= availableSpots){
+						io.sockets.sockets.forEach(function(sock){
+							if(sock.username === data.userCode){
+								sock.emit('winner',{url: roomObj.room.url});
+							}
+						});
+					}else{
+						io.sockets.sockets.forEach(function(sock){
+							if(sock.username === data.userCode){
+								sock.emit('squares',{roomObj: roomObj});
+							}
+						});
+					}
 				}
-
-				roomObj.players.forEach(function(player){
-					if(player.username === data.myUserCode){
-						player = player1;
-					}else if(player.username === data.userCode){
-						player = player2;
-					}
-				});
-				io.sockets.sockets.forEach(function(sock){
-					if(sock.username === data.userCode){
-						sock.emit('squares',{roomObj: roomObj});
-					}
-				});
-
-				socket.emit('squares',{roomObj: roomObj}); // send current state of game
 			}
 		});
 

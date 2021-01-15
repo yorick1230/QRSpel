@@ -74,9 +74,7 @@ $(() => {
 		console.log('connected!');
 
 		// on playercount update
-		socket.on('playercount', (msg) => {
-			console.log(msg);
-			
+		socket.on('playercount', (msg) => {			
 			if(msg.room == room){
 				if(msg.playercount === 0)
 					msg.playercount = 1;
@@ -90,17 +88,22 @@ $(() => {
 
 		// receive squares from server
 		socket.on('squares', (msg) => {
-			console.log('squares!');
-			console.log(msg);
 			// find user
 			var user = msg.roomObj.players.find(user => user.username === username);
 			updateQrPuzzle(user.squares);
 		});
 
+		// win the game!
+		socket.on('winner', (msg) => {
+			console.log('winner!');
+
+			// game has ended, notify the user
+			$(".qrgamecontent").css('display', 'block');
+			$(".qrgamecontent").html('<p>U heeft gewonnen! hieronder is uw prijs:</p><br><a href="'+msg.url+'">'+msg.url+'</a>');
+		});
+
 		// on roomStatus update
 		socket.on('roomStatus', (lobby) => {
-			console.log('roomStatus!');
-			console.log(lobby);
 			// check if the updated room is the one we are trying to enter
 			if(lobby.roomCode === room){
 				// check if the room has closed
