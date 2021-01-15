@@ -175,8 +175,11 @@ module.exports = function(app, mongoose, io){
 							var i = 0;
 							var player = roomObj.players[0];
 							availableSpots.forEach(function(square) {
-								if(i !== 0 && i % squarePerPlayer === 0){
-									player = roomObj.players[Math.round(i / squarePerPlayer)]; // give squares to next player
+								if(i !== 0 && i % Math.floor(squarePerPlayer) === 0){
+									player = roomObj.players[Math.ceil(i / squarePerPlayer)]; // give squares to next player
+									if(!player){
+										player = roomObj.players[Math.ceil(i / squarePerPlayer)-1]; // give squares to next player
+									}
 								}
 								player.squares.push(square);
 								i++;
