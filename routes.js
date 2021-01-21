@@ -10,7 +10,8 @@ module.exports = function(app, mongoose, io){
 	    availableSpots: String,
 		qrcode: String,
 		status: String,
-		url: String
+		url: String,
+		exponential: Boolean
 	});
 
 	var UserSchema = mongoose.Schema({
@@ -46,7 +47,6 @@ module.exports = function(app, mongoose, io){
 			if(roomObj){
 				roomObj.players.forEach(function(player){
 					if(player.username === data.username){
-						console.log('reconnect!');
 						reconnect = true;
 					}
 				});
@@ -69,9 +69,6 @@ module.exports = function(app, mongoose, io){
 		});
 
 		socket.on('exchangeBlocks', (data) => {
-			console.log(data.userCode);
-			console.log(data.roomCode);
-
 			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
 			var player1;
 			var player2;
@@ -97,6 +94,11 @@ module.exports = function(app, mongoose, io){
 					player1.squares = [...new Set([...player1.squares ,...player2.squares.slice(0, squarePerPlayer)])];
 					player2.squares = [...new Set([...player2.squares ,...player1.squares.slice(0, squarePerPlayer)])];
 				
+					if(roomObj.room.exponential === true){
+						player1.squares = [...new Set([...player1.squares ,...player2.squares])];
+						player2.squares = [...new Set([...player2.squares ,...player1.squares])];
+					}
+
 					roomObj.players.forEach(function(player){
 						if(player.username === data.myUserCode){
 							player = player1;
@@ -151,6 +153,12 @@ module.exports = function(app, mongoose, io){
 		}
 	});
 	})
+
+	app.post('/api/toggleExponential', (req, res) => {
+		Room.findOne({code: req.body.roomCode}, function(err, obj){
+			Room.findOneAndUpdate({code: req.body.roomCode}, {exponential: !obj.exponential}).then(() => res.status(200).json({exponential: !obj.exponential}));
+		});
+	});
 
 	// toggle the access of a room
 	app.post('/api/toggleRoomAccess', (req, res) => {
@@ -289,7 +297,7 @@ module.exports = function(app, mongoose, io){
 				var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
 				var url = req.body.targeturl.trim();
 
-			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url} , function(err, result) {
+			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false} , function(err, result) {
 					if (result === null || err) {
 						res.sendStatus(404);
 					} else {

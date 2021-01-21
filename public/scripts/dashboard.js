@@ -5,15 +5,34 @@ $(() => {
 		data: {},
 		dataType: "json",
 		success: function (result) {
-		   console.log(result);
 		   var colors = {open: "green", playing: "blue", closed: "red"}
+		   var exponentials = {true: "✔", false: "❌"}
 		   for(var i = 0; i < result.length; i++){
+			   console.log(result[i]);
 				$("#roomsTable").append('<tr><td>'+ result[i].code +
 				'</td><td>'+ result[i].url +
 				'</td><td><button style="float: right; background-color:'+colors[result[i].status]+'" class="btn btn-success" name="toggleRoomAccess" id="' + 
 				result[i].code + '">' + result[i].status + '</button><button name="deleteRoom" style="float: right;" class="btn btn-danger" id="' + 
-				result[i].code + '">Delete</button></td></tr>');
+				result[i].code + '">Delete</button><button style="float: right; background-color: green; color: white;" class="btn btn-succes" id="' + 
+				result[i].code + '" name="shareExponentially">Exponentieel: '+exponentials[result[i].exponential]+'</button></td></tr>');
 		   }		   
+
+		   $( "button[name='shareExponentially']" ).click(function(){
+				var element = this;
+				$.ajax({
+					type: 'POST',
+					url: "api/toggleExponential",
+					data: {roomCode: $(this).attr('id')},
+					dataType: "json",
+					success: function (result) {
+						$(element).html("Exponentieel: "+exponentials[result.exponential]);
+					},
+					error: function(err){
+						console.log(err);
+					}
+				});
+		   });
+
 			$( "button[name='deleteRoom']" ).click(function(){
 				// Delete a room based on room code
 				var element = this;
