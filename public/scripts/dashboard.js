@@ -14,8 +14,42 @@ $(() => {
 				'</td><td><button style="float: right; background-color:'+colors[result[i].status]+'" class="btn btn-success" name="toggleRoomAccess" id="' + 
 				result[i].code + '">' + result[i].status + '</button><button name="deleteRoom" style="float: right;" class="btn btn-danger" id="' + 
 				result[i].code + '">Delete</button><button style="float: right; background-color: green; color: white;" class="btn btn-succes" id="' + 
-				result[i].code + '" name="shareExponentially">Exponentieel: '+exponentials[result[i].exponential]+'</button></td></tr>');
+				result[i].code + '" name="shareExponentially">Exponentieel: '+exponentials[result[i].exponential]+'</button><button style="float: right; background-color: blue; color: white;" class="btn btn-succes" id="' + 
+				result[i].code + '" name="Redundantie">Redundantie: '+result[i].redundantie+'%</button></td></tr>');
 		   }		   
+
+		   $( "button[name='Redundantie']" ).click(function(){
+			var element = this;
+			$(".bd-example-modal-lg").modal('show');
+
+			var slider = document.getElementById("myRange");
+			var output = document.getElementsByClassName("percent");
+			update();
+			
+			slider.oninput = function() {
+			  update();
+			}
+			function update() {
+			  var arr = Array.prototype.slice.call(output);
+			  for (var el of arr) {
+				el.innerHTML = slider.value;
+			  }
+			}
+			$("#savePercentage").click(function(){
+				$.ajax({
+					type: 'POST',
+					url: "api/setRedundantie",
+					data: {roomCode: $(element).attr('id'), redundantie: $(".percent").html()},
+					dataType: "json",
+					success: function (result) {
+						$(element).html("Redundantie: "+result.redundantie+"%");
+					},
+					error: function(err){
+						console.log(err);
+					}
+				});
+			});
+	   });
 
 		   $( "button[name='shareExponentially']" ).click(function(){
 				var element = this;

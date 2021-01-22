@@ -35,7 +35,7 @@ io.on('connection', (socket) => {
 });
 
 // connect mongodb database
-//mongoose.set('useFindAndModify', false);
+mongoose.set('useFindAndModify', false);
 mongoose.connect(config.dbUrl, {useNewUrlParser: true, useUnifiedTopology: true }, (err) => { 
    console.log("Mongoose connected",err);
 })

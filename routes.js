@@ -11,7 +11,8 @@ module.exports = function(app, mongoose, io){
 		qrcode: String,
 		status: String,
 		url: String,
-		exponential: Boolean
+		exponential: Boolean,
+		redundantie: String
 	});
 
 	var UserSchema = mongoose.Schema({
@@ -154,6 +155,13 @@ module.exports = function(app, mongoose, io){
 	});
 	})
 
+	app.post('/api/setRedundantie', (req, res) => {
+		Room.findOne({code: req.body.roomCode}, function(err, obj){
+			var redundantie = req.body.redundantie;
+			Room.findOneAndUpdate({code: req.body.roomCode}, {redundantie: redundantie}).then(() => res.status(200).json({redundantie: redundantie}));
+		});
+	});
+
 	app.post('/api/toggleExponential', (req, res) => {
 		Room.findOne({code: req.body.roomCode}, function(err, obj){
 			Room.findOneAndUpdate({code: req.body.roomCode}, {exponential: !obj.exponential}).then(() => res.status(200).json({exponential: !obj.exponential}));
@@ -193,6 +201,22 @@ module.exports = function(app, mongoose, io){
 								}
 								i++;
 							});
+
+							var dupes = playerCount * (Number(roomObj.room.redundantie) / 100);
+							i = 0;
+							var nxtPlayr = undefined;
+							if(Number(roomObj.room.redundantie) > 0){
+								roomObj.players.forEach(function(playr){
+									if(nxtPlayr){
+										nxtPlayr.squares = [...new Set([...nxtPlayr.squares ,...playr.squares])];
+									}
+									nxtPlayr = playr;
+									i++;
+									if(i > dupes){
+										nxtPlayr = undefined;
+									}
+								});
+							}
 
 							// send the squares to all clients
 							io.sockets.emit('squares',{roomObj: roomObj}); //update clients
@@ -297,7 +321,7 @@ module.exports = function(app, mongoose, io){
 				var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
 				var url = req.body.targeturl.trim();
 
-			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false} , function(err, result) {
+			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '50'} , function(err, result) {
 					if (result === null || err) {
 						res.sendStatus(404);
 					} else {
