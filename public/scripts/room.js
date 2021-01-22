@@ -4,7 +4,6 @@ $(() => {
 	const room = urlParams.get('code');
 	var username;
 	
-
 	// check if room exists
 	if(room != null && room != ""){
 		$.ajax("api/room?code="+room, {

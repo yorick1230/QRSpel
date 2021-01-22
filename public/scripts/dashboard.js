@@ -15,7 +15,7 @@ $(() => {
 				result[i].code + '">' + result[i].status + '</button><button name="deleteRoom" style="float: right;" class="btn btn-danger" id="' + 
 				result[i].code + '">Delete</button><button style="float: right; background-color: green; color: white;" class="btn btn-succes" id="' + 
 				result[i].code + '" name="shareExponentially">Exponentieel: '+exponentials[result[i].exponential]+'</button><button style="float: right; background-color: blue; color: white;" class="btn btn-succes" id="' + 
-				result[i].code + '" name="Redundantie">Redundantie: '+result[i].redundantie+'%</button></td></tr>');
+				result[i].code + '" name="Redundantie">Redundantie: '+result[i].redundantie+'</button></td></tr>');
 		   }		   
 
 		   $( "button[name='Redundantie']" ).click(function(){
@@ -42,7 +42,7 @@ $(() => {
 					data: {roomCode: $(element).attr('id'), redundantie: $(".percent").html()},
 					dataType: "json",
 					success: function (result) {
-						$(element).html("Redundantie: "+result.redundantie+"%");
+						$(element).html("Redundantie: "+result.redundantie);
 					},
 					error: function(err){
 						console.log(err);

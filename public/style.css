@@ -133,6 +133,20 @@ html, body {
 	text-align: left;
 }
 
+#roomsTable > tr > td > button{
+	width: 100%;
+}
+#roomsTable > tr > td{
+	width: 20%;
+	word-break: break-all;
+}
+#roomsTable > tr > td:nth-child(2){
+	width: 60%;
+}
+#roomsDiv > table{
+	table-layout:fixed;
+}
+
 @media only screen
 and (min-device-width : 380px)
 and (max-device-width : 580px) {

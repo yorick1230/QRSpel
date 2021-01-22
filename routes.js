@@ -203,21 +203,51 @@ module.exports = function(app, mongoose, io){
 								i++;
 							});
 
-							var dupes = playerCount * (Number(roomObj.room.redundantie) / 100);
-							i = 0;
-							var nxtPlayr = undefined;
-							if(Number(roomObj.room.redundantie) > 0){
-								roomObj.players.forEach(function(playr){
-									if(nxtPlayr){
-										nxtPlayr.squares = [...new Set([...nxtPlayr.squares ,...playr.squares])];
+							if(roomObj.room.redundantie > 0){
+								for(j = 0; j <= roomObj.room.redundantie; j++){
+									console.log(j);
+									console.log(roomObj.players)
+
+									// give new spots
+									var i = 0;
+									var player = roomObj.players[0];
+									availableSpots.forEach(function(square) {
+										if(i !== 0 && i % Math.floor(squarePerPlayer) === 0){
+											player = roomObj.players[Math.ceil((i) / squarePerPlayer)]; // give squares to next player
+										}
+										if(player){
+											player.squares.push(square);
+										}
+										i++;
+									});
+									//roomObj.players[playerCount-1].squares = [...new Set([...roomObj.players[playerCount-1].squares ,...roomObj.players[0].squares])];
+									//roomObj.players[0].squares = [...new Set([...roomObj.players[0].squares ,...roomObj.players[1].squares])];
+
+									// shuffle array
+									var temp = JSON.parse(JSON.stringify(roomObj.players[0]));
+									for(k=0;k<roomObj.players.length-1;k++){
+										roomObj.players[k]=roomObj.players[k+1];
 									}
-									nxtPlayr = playr;
-									i++;
-									if(i > dupes){
-										nxtPlayr = undefined;
-									}
-								});
+									roomObj.players[roomObj.players.length-1] = temp;
+								}
 							}
+
+							// var playrs = undefined;
+							// if(Number(roomObj.room.redundantie) > 0){
+							// 	roomObj.players.forEach(function(playr){
+
+							// 		for(j = 0; j < roomObj.room.redundantie; j++){
+							// 			if(playrs[j]){
+											
+							// 			}	
+							// 		}
+							// 		playrs.push(playr);
+
+							// 		if(nxtPlayr){
+							// 			nxtPlayr.squares = [...new Set([...nxtPlayr.squares ,...playr.squares])];
+							// 		}
+							// 	});
+							// }
 
 							// send the squares to all clients
 							io.sockets.emit('squares',{roomObj: roomObj}); //update clients
@@ -327,7 +357,7 @@ module.exports = function(app, mongoose, io){
 					var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
 					var url = req.body.targeturl.trim();
 
-					Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '50'} , function(err, result) {
+					Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '0'} , function(err, result) {
 						if (result === null || err) {
 							res.sendStatus(404);
 						} else {
@@ -367,6 +397,26 @@ module.exports = function(app, mongoose, io){
 	 	req.session.loggedin = false;
 	 	res.status(200).send({status: "OK" });
 	});
+
+	// shuffles a array in random order
+	function shuffle(array) {
+		var currentIndex = array.length, temporaryValue, randomIndex;
+	  
+		// While there remain elements to shuffle...
+		while (0 !== currentIndex) {
+	  
+		  // Pick a remaining element...
+		  randomIndex = Math.floor(Math.random() * currentIndex);
+		  currentIndex -= 1;
+	  
+		  // And swap it with the current element.
+		  temporaryValue = array[currentIndex];
+		  array[currentIndex] = array[randomIndex];
+		  array[randomIndex] = temporaryValue;
+		}
+	  
+		return array;
+	  }
 
 	async function generateUniqueUsername(roomCode){
 		var username = generateRoomID();
