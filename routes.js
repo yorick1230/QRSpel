@@ -2,6 +2,7 @@ const qrreader = require('./public/libs/jsQR.js');
 const qrgenerator = require('qrcode');
 const sizeOf = require('image-size');
 const { createCanvas, loadImage } = require('canvas')
+const TinyURL = require('tinyurl');
 
 module.exports = function(app, mongoose, io){
 	// #########################   API    ###############################
@@ -283,52 +284,58 @@ module.exports = function(app, mongoose, io){
 			return res.status(404).json({ message: 'Targeturl is required.' });
 		}
 
-		// check if temp directory exists
-		qrgenerator.toFile('./temp/tmp.png', req.body.targeturl, {version: 4}, function (err) {
-			if(err)
-				return res.status(404).json({ message: 'Could not generate qrcode.' });
+		// shortify link
+		TinyURL.shorten(req.body.targeturl, function(tinyLink, err){
+			if(!tinyLink || err)
+				return res.status(404).json({ message: 'Could not shortify link.' });
 
-			// get image dimensions
-			var dimensions = sizeOf('./temp/tmp.png');
+			// check if temp directory exists
+			qrgenerator.toFile('./temp/tmp.png', tinyLink, {version: 4}, function (err) {
+				if(err)
+					return res.status(404).json({ message: 'Could not generate qrcode.' });
 
-			// convert image to array of binary data
-			const canvas = createCanvas(dimensions.width, dimensions.height);
-			const ctx = canvas.getContext('2d');
+				// get image dimensions
+				var dimensions = sizeOf('./temp/tmp.png');
 
-			loadImage('./temp/tmp.png').then((image) => {
-				ctx.drawImage(image, 0, 0);
-				imageData = ctx.getImageData(0, 0, dimensions.width, dimensions.height);
-				matrix = qrreader(imageData.data, dimensions.width, dimensions.height);
+				// convert image to array of binary data
+				const canvas = createCanvas(dimensions.width, dimensions.height);
+				const ctx = canvas.getContext('2d');
 
-				var rows = matrix.extractedRaw.width;
-				var cols = matrix.extractedRaw.height;
-				var availableSpots = [];
-				var i = 0;
-			    for (var r=0;r<rows;++r){
-			        for (var c=0;c<cols;++c){
-			            if(r > (rows/3) && c > (cols / 3)){
-			                if(matrix.extractedRaw.data[i] === 1){
-			                	// if black square, add to available spots
-			                	availableSpots.push([r,c]);
-			                }
-			            }
-			            i++;
-			        }
-			    }
-			    // save all in mongodb
-			    var id = generateRoomID();
-			    var availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
-				var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
-				var url = req.body.targeturl.trim();
+				loadImage('./temp/tmp.png').then((image) => {
+					ctx.drawImage(image, 0, 0);
+					imageData = ctx.getImageData(0, 0, dimensions.width, dimensions.height);
+					matrix = qrreader(imageData.data, dimensions.width, dimensions.height);
 
-			    Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '50'} , function(err, result) {
-					if (result === null || err) {
-						res.sendStatus(404);
-					} else {
-						res.json(result);
+					var rows = matrix.extractedRaw.width;
+					var cols = matrix.extractedRaw.height;
+					var availableSpots = [];
+					var i = 0;
+					for (var r=0;r<rows;++r){
+						for (var c=0;c<cols;++c){
+							if(r > (rows/3) && c > (cols / 3)){
+								if(matrix.extractedRaw.data[i] === 1){
+									// if black square, add to available spots
+									availableSpots.push([r,c]);
+								}
+							}
+							i++;
+						}
 					}
+					// save all in mongodb
+					var id = generateRoomID();
+					var availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
+					var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
+					var url = req.body.targeturl.trim();
+
+					Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '50'} , function(err, result) {
+						if (result === null || err) {
+							res.sendStatus(404);
+						} else {
+							res.json(result);
+						}
+					});
 				});
-			});
+			});			
 		});
 	});
 
@@ -368,7 +375,7 @@ module.exports = function(app, mongoose, io){
 		// find the room the player is joining and check if the username is unique
 		await Room.findOne({code: roomCode}, function(err, obj){
 			// check if game is waiting for players, no need to generate a name if the game already started or closed
-			if(obj.status !== "open"){
+			if(obj && obj.status !== "open"){
 				return null;
 			}
 
