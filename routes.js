@@ -397,8 +397,8 @@ module.exports = function(app, mongoose, io){
 			}
 
 			//TODO: check if username is unique
-			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
-			if(roomObj){
+			var roomObj = activeRooms.find(o => o.room.code === roomCode);
+			if(roomObj && roomObj.room.players){
 				roomObj.room.players.forEach(function(player){
 					if(player.username === username){
 						unique = false;
