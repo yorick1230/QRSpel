@@ -111,6 +111,7 @@ module.exports = function(app, mongoose, io){
 
 					if(availableSpots.length % player1.squares.length < squarePerPlayer){
 						socket.emit('winner',{url: roomObj.room.url});
+						socket.emit('squares',{roomObj: roomObj});
 					}else{
 						socket.emit('squares',{roomObj: roomObj}); // send current state of game
 					}
@@ -119,6 +120,7 @@ module.exports = function(app, mongoose, io){
 						io.sockets.sockets.forEach(function(sock){
 							if(sock.username === data.userCode){
 								sock.emit('winner',{url: roomObj.room.url});
+								sock.emit('squares',{roomObj: roomObj});
 							}
 						});
 					}else{
@@ -205,9 +207,6 @@ module.exports = function(app, mongoose, io){
 
 							if(roomObj.room.redundantie > 0){
 								for(j = 0; j <= roomObj.room.redundantie; j++){
-									console.log(j);
-									console.log(roomObj.players)
-
 									// give new spots
 									var i = 0;
 									var player = roomObj.players[0];
@@ -231,23 +230,6 @@ module.exports = function(app, mongoose, io){
 									roomObj.players[roomObj.players.length-1] = temp;
 								}
 							}
-
-							// var playrs = undefined;
-							// if(Number(roomObj.room.redundantie) > 0){
-							// 	roomObj.players.forEach(function(playr){
-
-							// 		for(j = 0; j < roomObj.room.redundantie; j++){
-							// 			if(playrs[j]){
-											
-							// 			}	
-							// 		}
-							// 		playrs.push(playr);
-
-							// 		if(nxtPlayr){
-							// 			nxtPlayr.squares = [...new Set([...nxtPlayr.squares ,...playr.squares])];
-							// 		}
-							// 	});
-							// }
 
 							// send the squares to all clients
 							io.sockets.emit('squares',{roomObj: roomObj}); //update clients
@@ -352,18 +334,23 @@ module.exports = function(app, mongoose, io){
 						}
 					}
 					// save all in mongodb
-					var id = generateRoomID();
-					var availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
-					var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
-					var url = req.body.targeturl.trim();
-
-					Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '0'} , function(err, result) {
-						if (result === null || err) {
-							res.sendStatus(404);
-						} else {
-							res.json(result);
-						}
-					});
+					generateRoomID().then((roomid) => {
+						var id = roomid;
+						console.log(roomid);
+						availableSpots = Buffer.from(JSON.stringify(availableSpots)).toString('base64');
+						var squares = Buffer.from(JSON.stringify(matrix.extractedRaw)).toString('base64');
+						var url = req.body.targeturl.trim();
+	
+						Room.create({code: id, availableSpots: availableSpots, qrcode: squares, status: "closed", url: url, exponential: false, redundantie: '0'} , function(err, result) {
+							if (result === null || err) {
+								res.sendStatus(404);
+							} else {
+								res.json(result);
+							}
+						});
+					}).catch(function (err) {
+						console.log(err);
+				   });;
 				});
 			});			
 		});
@@ -398,28 +385,8 @@ module.exports = function(app, mongoose, io){
 	 	res.status(200).send({status: "OK" });
 	});
 
-	// shuffles a array in random order
-	function shuffle(array) {
-		var currentIndex = array.length, temporaryValue, randomIndex;
-	  
-		// While there remain elements to shuffle...
-		while (0 !== currentIndex) {
-	  
-		  // Pick a remaining element...
-		  randomIndex = Math.floor(Math.random() * currentIndex);
-		  currentIndex -= 1;
-	  
-		  // And swap it with the current element.
-		  temporaryValue = array[currentIndex];
-		  array[currentIndex] = array[randomIndex];
-		  array[randomIndex] = temporaryValue;
-		}
-	  
-		return array;
-	  }
-
 	async function generateUniqueUsername(roomCode){
-		var username = generateRoomID();
+		var username = generateID();
 		var unique = true;
 
 		// find the room the player is joining and check if the username is unique
@@ -430,6 +397,14 @@ module.exports = function(app, mongoose, io){
 			}
 
 			//TODO: check if username is unique
+			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
+			if(roomObj){
+				roomObj.room.players.forEach(function(player){
+					if(player.username === username){
+						unique = false;
+					}
+				});
+			}
 			
 			// username unique? return it to the user
 			if(!unique){
@@ -453,10 +428,26 @@ module.exports = function(app, mongoose, io){
 		});
 		return rooms;
 	}
+	
+	async function generateRoomID() {
+		var id = generateID();
+		var unique = false;
+		await Room.findOne({code: id}).then((err, obj) => {
+			if(obj){
+				generateRoomID();
+			}
+			if(err || !obj){
+				unique = true;
+			}
+		});
+		if(unique){
+			return id;
+		}
+	 }
 
-	function generateRoomID() {
+	 function generateID() {
 		var result           = '';
-		var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		var characters       = '0123456789';
 		var charactersLength = characters.length;
 		for ( var i = 0; i < 4; i++ ) {
 		   result += characters.charAt(Math.floor(Math.random() * charactersLength));
