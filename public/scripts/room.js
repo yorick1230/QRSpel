@@ -98,7 +98,7 @@ $(() => {
 
 			// game has ended, notify the user
 			$(".qrgamecontent").css('display', 'block');
-			$(".qrgamecontent").append('<p>U heeft gewonnen! hieronder is uw prijs:</p><br><a href="'+msg.url+'">'+msg.url+'</a>');
+			$(".qrgamecontent").append('<p>U heeft gewonnen! scan nu de qr-code!');
 		});
 
 		// on roomStatus update
