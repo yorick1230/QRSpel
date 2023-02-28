@@ -28,7 +28,7 @@ module.exports = function(app, mongoose, io){
 	// check database for active rooms
 	var activeRooms = initActiveRooms();
 
-	//hardcoded user for testing purposes.
+	// hardcoded user for testing purposes.
 	// User.findOne({username:"test"}, function(err, usr) {
 	// 	if (err || usr === null) {
 	// 		User.create({username:"test", password:"test"});
@@ -74,7 +74,7 @@ module.exports = function(app, mongoose, io){
 			var roomObj = activeRooms.find(o => o.room.code === data.roomCode);
 			var player1;
 			var player2;
-
+			// console.log(roomObj);
 			if(roomObj){
 				roomObj.players.forEach(function(player){
 					if(player.username === data.myUserCode){
@@ -181,9 +181,13 @@ module.exports = function(app, mongoose, io){
 				  
 				switch(obj.status){
 					case "open":
+						var roomObj = activeRooms.find(o => o.room.code === obj.code);
+						if(roomObj.players.length <= 0){
+							break;
+						}
 						obj.status = "playing";
 						// calculate the qr-code puzzle for the amount of players
-						var roomObj = activeRooms.find(o => o.room.code === obj.code);
+
 						roomObj.room.status = "playing";
 						if(roomObj !== undefined){
 							const playerCount = roomObj.players.length;
