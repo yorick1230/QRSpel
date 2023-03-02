@@ -4,16 +4,27 @@ $(() => {
 	const room = urlParams.get('code');
 	var username;
 	
+	function getRandomInt(max) {
+		return Math.floor(Math.random() * max);
+	}
+
 	// check if room exists
 	if(room != null && room != ""){
 		$.ajax("api/room?code="+room, {
 		   type: "GET",
 		   statusCode: {
 		      200: function (response) {
+				response = response[0];
 		         $("#roomCode").text("Room: "+room);
+				 	console.log(response);
 		         	var matrix = atob(response.qrcode);
 		         	matrix = JSON.parse(matrix);
 					var grid = createQrPuzzle(matrix.width,matrix.height, matrix.data);
+					if(response.questions && response.questions.length > 0){
+						$('span.roomTooltip').html("Vraag je gesprekspartner: "+response.questions[getRandomInt(response.questions.length)].question);
+					}else{
+						$('span.roomTooltip').hide();
+					}
 
 					$.ajax("api/username", {
 						type: "GET",

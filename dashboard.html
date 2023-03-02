@@ -35,6 +35,33 @@
 				</table>
 			</div>
 		</div>
+		<div class="modal fade bd-questions-modal-lg" tabindex="-1" role="dialog" id="questionsModal">
+			<div class="modal-dialog" role="document">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <h5 class="modal-title">Vragen</h5>
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				  </button>
+				</div>
+				<div class="modal-body">
+					
+					<div class="input-group mb-3">
+						<input type="text" class="form-control" placeholder="Hoe gaat het?" aria-label="question" aria-describedby="basic-addon2" name="questionInput">
+						<div class="input-group-append">
+							<button class="btn btn-primary" type="button" name="addQuestionToList">Toevoegen</button>
+						</div>
+					</div>
+					<ul class="list-group" id="questionsList">
+					</ul>
+				</div>
+				<div class="modal-footer">
+				  <button type="button" id="saveQuestions" class="btn btn-primary" data-dismiss="modal">Save</button>
+				  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+				</div>
+			  </div>
+			</div>
+		  </div>
 		<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" id="optionsModal">
 			<div class="modal-dialog" role="document">
 			  <div class="modal-content">

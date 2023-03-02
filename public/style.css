@@ -147,6 +147,38 @@ html, body {
 	table-layout:fixed;
 }
 
+.roomTooltip{
+	text-align: left;
+	float: left;
+	background-color: green;
+	color: white;
+	font-size: 16px;
+	width: 100%;
+	min-height: 40px;
+	vertical-align: middle;
+	padding: 7px;
+	position:relative;
+	margin-bottom: 20px;
+}
+
+.roomTooltip:after {
+	content: '';
+   position: absolute;
+   left: 18px;
+   top: 100%;
+   width: 0;
+   height: 0;
+   border-left: 20px solid transparent;
+   border-right: 20px solid transparent;
+   border-top: 20px solid green;
+   clear: both;
+
+}
+
+#questionsModal > div.modal-dialog{
+	max-width: 800px;
+}
+
 @media only screen
 and (min-device-width : 380px)
 and (max-device-width : 580px) {

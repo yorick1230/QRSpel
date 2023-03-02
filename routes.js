@@ -13,7 +13,12 @@ module.exports = function(app, mongoose, io){
 		status: String,
 		url: String,
 		exponential: Boolean,
-		redundantie: String
+		redundantie: String,
+	});
+
+	var QuestionSchema = mongoose.Schema({
+	    roomCode: String,
+	    question: String
 	});
 
 	var UserSchema = mongoose.Schema({
@@ -23,17 +28,18 @@ module.exports = function(app, mongoose, io){
 
 	// model objects in database
 	var Room = mongoose.model("Room", RoomSchema, "rooms");
+	var Question = mongoose.model("Question", QuestionSchema, "questions");
 	var User = mongoose.model("User", UserSchema, "users");
 
 	// check database for active rooms
 	var activeRooms = initActiveRooms();
 
 	// hardcoded user for testing purposes.
-	// User.findOne({username:"test"}, function(err, usr) {
-	// 	if (err || usr === null) {
-	// 		User.create({username:"test", password:"test"});
-	// 	}
-	// });
+	User.findOne({username:"test"}, function(err, usr) {
+		if (err || usr === null) {
+			User.create({username:"test", password:"test"});
+		}
+	});
 
 	// socket.io listening for players
 	io.on('connection', (socket) => {
@@ -261,24 +267,54 @@ module.exports = function(app, mongoose, io){
 
 	// get all rooms
     app.post('/api/getAllRooms', (req, res) => {
-		Room.find({}, function(err, result) {
-		if (result === null || err) {
-		  res.sendStatus(404);
-		} else {
-		  res.json(result);
-		}
-	  });
+
+		Room.aggregate([{
+			$lookup: {
+				from: "questions", // collection name in db
+				localField: "code",
+				foreignField: "roomCode",
+				as: "questions"
+			}
+		}]).exec(function(err, result) {
+			res.json(result);
+		});
+
+	// 	Room.find({}, function(err, result) {
+	// 	if (result === null || err) {
+	// 	  res.sendStatus(404);
+	// 	} else {
+	// 	  res.json(result);
+	// 	}
+	//   });
   	})
 	
 	// find a room by code
     app.get('/api/room', (req, res) => {
-	  	Room.findOne({code: req.query.code}, function(err, result) {
-		  if (result === null || err) {
-		    res.sendStatus(404);
-		  } else {
-		    res.json(result);
-		  }
+
+		Room.aggregate([{
+				$match : {code: req.query.code}
+			},{
+			$lookup: {
+				from: "questions", // collection name in db
+				localField: "code",
+				foreignField: "roomCode",
+				as: "questions"
+			}
+		}]).exec(function(err, result) {
+			if(result.length < 1){
+				res.sendStatus(404);
+			}else{
+				res.json(result);
+			}
 		});
+
+	  	// Room.findOne({code: req.query.code}, function(err, result) {
+		//   if (result === null || err) {
+		//     res.sendStatus(404);
+		//   } else {
+		//     res.json(result);
+		//   }
+		// });
 	})
 
 	// get the user's username and link it to the given socket, 404 if not set yet
@@ -358,6 +394,39 @@ module.exports = function(app, mongoose, io){
 				});
 			});			
 		});
+	});
+
+	app.post('/api/saveQuestions', (req, res) => {
+		if(!req.session.loggedin){
+			return res.status(401).json({ message: 'You need to be logged in to be able to do this.' });
+		}
+
+		if(req.body.roomCode === "" || req.body.roomCode === null){
+			return res.status(404).json({ message: 'RoomCode is required.' });
+		}
+
+		if(req.body.questions === []|| req.body.questions === null){
+			return res.status(404).json({ message: 'Questions are required (may be empty?).' });
+		}
+
+		Question.deleteMany({roomCode: { $in: [req.body.roomCode]}}, function(err, result) {
+			if (err) {
+			  res.send(err);
+			}else{
+				let parsedQuestions = JSON.parse(req.body.questions);
+				saveArr = [];
+				parsedQuestions.forEach(question => {
+					saveArr.push({roomCode: req.body.roomCode, question: question});
+				});
+
+				Question.insertMany(saveArr).then(function (docs) {
+					res.send({'status': 'ok'});
+				})
+				.catch(function (err) {
+					response.status(500).send(err);
+				});
+			}
+		  });
 	});
 
 	app.post('/api/auth', (req, res) => {

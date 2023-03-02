@@ -8,15 +8,64 @@ $(() => {
 		   var colors = {open: "green", playing: "blue", closed: "red"}
 		   var exponentials = {true: "✔", false: "❌"}
 		   for(var i = 0; i < result.length; i++){
-			   console.log(result[i]);
+			//    console.log(result[i]);
 				$("#roomsTable").append('<tr><td>'+ result[i].code +
 				'</td><td>'+ result[i].url +
 				'</td><td><button style="float: right; background-color:'+colors[result[i].status]+'" class="btn btn-success" name="toggleRoomAccess" id="' + 
 				result[i].code + '">' + result[i].status + '</button><button name="deleteRoom" style="float: right;" class="btn btn-danger" id="' + 
 				result[i].code + '">Delete</button><button style="float: right; background-color: green; color: white;" class="btn btn-succes" id="' + 
 				result[i].code + '" name="shareExponentially">Exponentieel: '+exponentials[result[i].exponential]+'</button><button style="float: right; background-color: blue; color: white;" class="btn btn-succes" id="' + 
-				result[i].code + '" name="Redundantie">Redundantie: '+result[i].redundantie+'</button></td></tr>');
-		   }		   
+				result[i].code + '" name="Redundantie">Redundantie: '+result[i].redundantie+'</button><button style="float: right; background-color: #c79f32; color: white;" class="btn btn-succes" id="' + 
+				result[i].code + '" name="Vragen">Vragen: '+result[i].questions.length+'</button></td></tr>');
+		   }
+
+		   $( "#saveQuestions" ).click(function(){
+				$("button[name='QuestionDelete']").remove();
+				var questionsArr = [];
+				let list = document.getElementById("questionsList").querySelectorAll('li');
+
+				list.forEach((item, index) => {
+					questionsArr.push(item.innerText);
+				});
+				
+				$.ajax({
+					type: 'POST',
+					url: "api/saveQuestions",
+					data: {roomCode: document.getElementById("questionsList").getAttribute('name'), questions: JSON.stringify(questionsArr)},
+					dataType: "json",
+					success: function (result) {
+						console.log("Questions saved!");
+						location.reload();
+					}, error: function(err){
+						console.log(err)
+					}
+				});
+		   });
+
+		   $( "button[name='addQuestionToList']" ).click(function(){
+			if($("input[name='questionInput']").first().val().length > 0 && $("input[name='questionInput']").first().val().length < 1000){
+				$("#questionsList").append($("<li>").attr("class","list-group-item").text($("input[name='questionInput']").first().val()));
+
+				$("input[name='questionInput']").first().val('');
+			}
+		   });
+
+			$( "button[name='Vragen']" ).click(function(){
+				var element = this;
+				$(".bd-questions-modal-lg").modal('show');
+				$("#questionsList").empty();
+				for(var i = 0; i < result.length; i++){
+					if(result[i].code === this.id){
+						result[i].questions.forEach(element => {
+							$("#questionsList").append('<li class="list-group-item">'+element.question+'<button type="button" class="btn btn-secondary" style="float: right; background-color: red; color: white;" name="QuestionDelete">Delete</button></li>');
+						});
+						$("#questionsList").attr('name', this.id);
+					}
+				}
+				$("button[name='QuestionDelete']" ).click(function(){
+					$(this).parent().remove();
+				});
+			});
 
 		   $( "button[name='Redundantie']" ).click(function(){
 			var element = this;
