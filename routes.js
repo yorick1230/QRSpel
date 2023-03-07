@@ -115,14 +115,14 @@ module.exports = function(app, mongoose, io){
 						}
 					});
 
-					if(availableSpots.length % player1.squares.length < squarePerPlayer){
+					if(availableSpots.length == player1.squares.length || availableSpots.length == player1.squares.length-1){
 						socket.emit('winner',{url: roomObj.room.url});
 						socket.emit('squares',{roomObj: roomObj});
 					}else{
 						socket.emit('squares',{roomObj: roomObj}); // send current state of game
 					}
 
-					if(availableSpots.length % player2.squares.length < squarePerPlayer){
+					if(availableSpots.length == player2.squares.length || availableSpots.length == player2.squares.length-1){
 						io.sockets.sockets.forEach(function(sock){
 							if(sock.username === data.userCode){
 								sock.emit('winner',{url: roomObj.room.url});

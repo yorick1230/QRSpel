@@ -24,7 +24,6 @@
 			<div class="col-md-12">
 				<h2 id="roomSpelerCode">Spelercode:</h2> 
 			</div>
-			<span class="roomTooltip">Hint: </span>
 			<input type="text" name="spelerCode" class="form-control spelerCode" placeholder="Spelercode" maxlength="4">
 			<button class="spelerCode btn btn-lg btn-primary btn-block">Blokken uitwisselen</button>
 		</div>
@@ -33,6 +32,26 @@
 			<h3>Aan het wachten op andere spelers..</h3>
 			<p class='playercountmsg'></p>
 		</div>
+		<div class="modal modal-question" tabindex="-1" role="dialog" id="modalquestion">
+			<div class="modal-dialog" role="document">
+			  <div class="modal-content modal-content-question">
+				<div class="modal-header-question">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				  <h5 class="modal-title">Vraagje!</h5>
+				</div>
+				<div class="modal-body">
+					<p>Vraag het volgende aan je gesprekspartner voordat je de blokken uitwisselt.</p>
+					 Vraag je gesprekspartner: <span class="roomTooltip">tooltip </span>
+				</div>
+				<div class="modal-footer">
+					<span class="tinyfootertext">Na het gesprek kun je de blokken uitwisselen.</span>
+				  <button id="questionBtnOk" type="button" class="btn btn-secondary" data-dismiss="modal">Ok</button>
+				</div>
+			  </div>
+			</div>
+		  </div>
 	</div>
 </div>
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"

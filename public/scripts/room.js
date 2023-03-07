@@ -2,6 +2,7 @@ $(() => {
 	const socket = io();
 	const urlParams = new URLSearchParams(window.location.search);
 	const room = urlParams.get('code');
+	var allQuestions = [];
 	var username;
 	
 	function getRandomInt(max) {
@@ -21,9 +22,8 @@ $(() => {
 		         	matrix = JSON.parse(matrix);
 					var grid = createQrPuzzle(matrix.width,matrix.height, matrix.data);
 					if(response.questions && response.questions.length > 0){
+						allQuestions = response.questions;
 						$('span.roomTooltip').html("Vraag je gesprekspartner: "+response.questions[getRandomInt(response.questions.length)].question);
-					}else{
-						$('span.roomTooltip').hide();
 					}
 
 					$.ajax("api/username", {
@@ -74,10 +74,16 @@ $(() => {
 		}
 	});
 
-	$("button.spelerCode").click(function(){
+	$("#questionBtnOk").click(function(){
 		if($("input.spelerCode").val().length === 4){
 			socket.emit('exchangeBlocks', {myUserCode: username,userCode: $("input.spelerCode").val(), roomCode: room});
 		}
+	});
+
+	$("button.spelerCode").click(function(){
+		$(".modal-question").modal('show');
+		$('span.roomTooltip').html(allQuestions[getRandomInt(allQuestions.length)].question);
+		$('span.roomTooltip').show();
 	});
 
 	socket.on('connect', (we) => {
